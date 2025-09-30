@@ -6,6 +6,7 @@ import 'package:kuis_prak_mobile/page/game_page.dart'; // Impor DetailPage
 
 class HomePage extends StatelessWidget {
   final String username;
+  String get getUsername => username;
   const HomePage({super.key, required this.username});
 
   @override
@@ -51,6 +52,7 @@ class HomePage extends StatelessWidget {
           ),
         ],
       ),
+
       body: ListView(
         children: [
           Padding(
@@ -63,6 +65,16 @@ class HomePage extends StatelessWidget {
                 fit: BoxFit.cover,
                 width: double.infinity,
                 height: 150,
+              ),
+            ),
+          ),
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 20.0),
+            child: Text(
+              'Search Your Favorite Game',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
               ),
             ),
           ),
@@ -176,7 +188,7 @@ class HomePage extends StatelessWidget {
                       ),
                       const Spacer(),
                       Text(
-                        game.price,
+                        game.totalLike.toString() + ' Likes',
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           color: Color.fromARGB(255, 0, 0, 0),
