@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:kuis_prak_mobile/model/game_store_model.dart';
 
 class DetailPage extends StatefulWidget {
@@ -12,46 +11,29 @@ class DetailPage extends StatefulWidget {
 }
 
 class _DetailPageState extends State<DetailPage> {
-  int _quantity = 1;
-  double _totalPrice = 0.0;
+  bool _isLiked = false;
+  late int _likeCount;
 
   @override
   void initState() {
     super.initState();
-    _calculateTotalPrice();
+    _likeCount = widget.game.totalLike;
   }
 
-  void _calculateTotalPrice() {
-    String mainPricePart = widget.game.price.split(',')[0];
-    final priceString = mainPricePart.replaceAll(RegExp(r'[^0-9]'), '');
-    final price = double.parse(priceString);
-
+  void _toggleLike() {
     setState(() {
-      _totalPrice = price * _quantity;
+      _isLiked = !_isLiked;
+      if (_isLiked) {
+        _likeCount++;
+      } else {
+        _likeCount--;
+      }
     });
-  }
-
-  void _incrementQuantity() {
-    setState(() {
-      _quantity++;
-      _calculateTotalPrice();
-    });
-  }
-
-  void _decrementQuantity() {
-    if (_quantity > 1) {
-      setState(() {
-        _quantity--;
-        _calculateTotalPrice();
-      });
-    }
   }
 
   @override
   Widget build(BuildContext context) {
     bool isNetworkImage = widget.game.imageUrl.startsWith('http');
-    final currencyFormatter =
-        NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
 
     return Scaffold(
       appBar: AppBar(
@@ -116,38 +98,23 @@ class _DetailPageState extends State<DetailPage> {
                     ),
                     const SizedBox(height: 16),
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Row(
-                          children: [
-                            IconButton(
-                              icon: const Icon(Icons.remove_circle_outline),
-                              onPressed: _decrementQuantity,
-                              color: Colors.red,
-                            ),
-                            Text(
-                              '$_quantity',
-                              style: const TextStyle(
-                                  fontSize: 20, fontWeight: FontWeight.bold),
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.add_circle_outline),
-                              onPressed: _incrementQuantity,
-                              color: Colors.green,
-                            ),
-                          ],
-                        ),
-                        Text(
-                          currencyFormatter.format(_totalPrice),
-                          style: const TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.bold,
-                            color: Color.fromARGB(255, 1, 49, 138),
+                        IconButton(
+                          icon: Icon(
+                            _isLiked ? Icons.favorite : Icons.favorite_border,
+                            color: _isLiked ? Colors.red : Colors.grey,
+                            size: 32,
                           ),
+                          onPressed: _toggleLike,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          '$_likeCount Likes',
+                          style: const TextStyle(
+                              fontSize: 20, fontWeight: FontWeight.bold),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 16),
                     const SizedBox(height: 24),
                     const Text(
                       'About',

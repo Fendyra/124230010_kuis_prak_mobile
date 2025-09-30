@@ -2,12 +2,42 @@ import 'package:flutter/material.dart';
 import 'package:kuis_prak_mobile/auth/login_page.dart';
 import 'package:kuis_prak_mobile/data/game_store.dart';
 import 'package:kuis_prak_mobile/model/game_store_model.dart';
-import 'package:kuis_prak_mobile/page/game_page.dart'; // Impor DetailPage
+import 'package:kuis_prak_mobile/page/game_page.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   final String username;
-  String get getUsername => username;
   const HomePage({super.key, required this.username});
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  final TextEditingController _searchController = TextEditingController();
+  List<GameModel> _filteredGameList = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _filteredGameList = gameList;
+    _searchController.addListener(_filterGames);
+  }
+
+  @override
+  void dispose() {
+    _searchController.removeListener(_filterGames);
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _filterGames() {
+    String query = _searchController.text.toLowerCase();
+    setState(() {
+      _filteredGameList = gameList.where((game) {
+        return game.gameName.toLowerCase().contains(query);
+      }).toList();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -20,7 +50,7 @@ class HomePage extends StatelessWidget {
           padding: const EdgeInsets.only(left: 10.0),
           child: Center(
             child: Text(
-              'Hi, $username!',
+              'Hi, ${widget.username}!',
               style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
@@ -52,7 +82,6 @@ class HomePage extends StatelessWidget {
           ),
         ],
       ),
-
       body: ListView(
         children: [
           Padding(
@@ -68,34 +97,53 @@ class HomePage extends StatelessWidget {
               ),
             ),
           ),
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 20.0),
-            child: Text(
-              'Search Your Favorite Game',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
+          const SizedBox(height: 10),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20.0),
+            child: TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                hintText: 'Search Game...',
+                prefixIcon: const Icon(Icons.search),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10.0),
+                  borderSide: const BorderSide(color: Colors.grey),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10.0),
+                  borderSide: const BorderSide(color: Color.fromARGB(255, 1, 49, 138)),
+                ),
               ),
             ),
           ),
           const SizedBox(height: 16),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                crossAxisSpacing: 16,
-                mainAxisSpacing: 16,
-                childAspectRatio: 0.60, // Sedikit diubah agar tombol muat
-              ),
-              itemBuilder: (context, index) {
-                final GameModel game = gameList[index];
-                return _gameCard(context, game); // Kirim context
-              },
-              itemCount: gameList.length,
-            ),
+            child: _filteredGameList.isEmpty
+                ? const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(20.0),
+                      child: Text(
+                        'Game tidak ditemukan.',
+                        style: TextStyle(fontSize: 16, color: Colors.grey),
+                      ),
+                    ),
+                  )
+                : GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      crossAxisSpacing: 16,
+                      mainAxisSpacing: 16,
+                      childAspectRatio: 0.60,
+                    ),
+                    itemBuilder: (context, index) {
+                      final GameModel game = _filteredGameList[index];
+                      return _gameCard(context, game);
+                    },
+                    itemCount: _filteredGameList.length,
+                  ),
           ),
           const SizedBox(height: 20),
         ],
@@ -136,7 +184,7 @@ class HomePage extends StatelessWidget {
               Expanded(
                 flex: 5,
                 child: Hero(
-                  tag: game.imageUrl, 
+                  tag: game.imageUrl,
                   child: isNetworkImage
                       ? Image.network(
                           game.imageUrl,
@@ -144,8 +192,8 @@ class HomePage extends StatelessWidget {
                           fit: BoxFit.cover,
                           errorBuilder: (context, error, stackTrace) {
                             return const Center(
-                                child: Icon(Icons.image_not_supported_outlined)
-                            );
+                                child:
+                                    Icon(Icons.image_not_supported_outlined));
                           },
                         )
                       : Image.asset(
@@ -154,14 +202,13 @@ class HomePage extends StatelessWidget {
                           fit: BoxFit.cover,
                           errorBuilder: (context, error, stackTrace) {
                             return const Center(
-                                child: Icon(Icons.broken_image_outlined)
-                            );
+                                child: Icon(Icons.broken_image_outlined));
                           },
                         ),
                 ),
               ),
               Expanded(
-                flex: 5, 
+                flex: 5,
                 child: Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: Column(
@@ -196,12 +243,11 @@ class HomePage extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 8),
-                      // Tombol Order
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
                           onPressed: () {
-                             Navigator.push(
+                            Navigator.push(
                               context,
                               MaterialPageRoute(
                                 builder: (context) => DetailPage(game: game),
@@ -209,7 +255,8 @@ class HomePage extends StatelessWidget {
                             );
                           },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color.fromARGB(255, 1, 49, 138),
+                            backgroundColor:
+                                const Color.fromARGB(255, 1, 49, 138),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(8),
                             ),
